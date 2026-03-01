@@ -206,7 +206,7 @@ export default function UserForm({ onSubmit }) {
             </div>
             <div className="rounded-2xl p-4 text-sm font-body"
               style={{ backgroundColor: 'color-mix(in srgb, #f7b267 10%, var(--surface))', border: '2px solid color-mix(in srgb, #f7b267 30%, var(--border))', color: 'var(--text2)' }}>
-              <strong style={{ color: 'var(--text)' }}>💡 Nota:</strong> Sin API key de Gemini se genera un plan de demostración con recetas variadas. Agrega tu key gratuita en <code>.env</code> para planes con IA real.
+              <strong style={{ color: 'var(--text)' }}>💡 Nota:</strong> Este es un plan generado con Inteligencia Artificial, los resultados varian según el metabolismo y adherencia al plan.
             </div>
           </motion.div>
         )}

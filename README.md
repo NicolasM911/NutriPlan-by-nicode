@@ -32,11 +32,11 @@
 
 ```bash
 # Opción A: Con git
-git clone https://github.com/tu-usuario/nutriplan.git
-cd nutriplan
+git clone https://github.com/NicolasM911/NutriPlan-by-nicode
+cd NutriPlan-by-nicode
 
 # Opción B: Si descargaste el zip
-cd nutriplan  # entra a la carpeta del proyecto
+cd NutriPlan-by-nicode # entra a la carpeta del proyecto
 ```
 
 ---

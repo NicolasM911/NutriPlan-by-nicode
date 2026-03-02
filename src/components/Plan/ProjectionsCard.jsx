@@ -52,7 +52,7 @@ export function getProjections(goal, weight, calories) {
   return p[goal] || p.maintain
 }
 
-export default function ProjectionsCard({ goal, weight, calories, delay = 0 }) {
+export default function ProjectionsCard({ goal, weight, calories, activityLevel, delay = 0 }) {
   const proj = getProjections(goal, weight, calories)
   const water = calculateWater(weight, activityLevel, goal)
 

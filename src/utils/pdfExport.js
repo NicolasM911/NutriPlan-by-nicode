@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf'
+import { jsPDF } from 'jspdf'
 
 // ── Paleta ─────────────────────────────────────────────────
 const C = {
@@ -15,15 +15,14 @@ const C = {
   brownXL:     [180, 140, 105],
   white:       [255, 255, 255],
   gray:        [190, 175, 162],
-  black:       [ 20,  10,   5],
 }
 
 const MEAL_CONFIG = {
-  juice:     { label: 'JUGO NATURAL',  dot: [130, 187, 122] },
-  breakfast: { label: 'DESAYUNO',      dot: [247, 178, 103] },
-  lunch:     { label: 'ALMUERZO',      dot: [244, 132,  95] },
-  dinner:    { label: 'CENA',          dot: [ 94, 140, 180] },
-  snack:     { label: 'SNACK',         dot: [168, 140, 200] },
+  juice:     { label: 'JUGO NATURAL', dot: [130, 187, 122] },
+  breakfast: { label: 'DESAYUNO',     dot: [247, 178, 103] },
+  lunch:     { label: 'ALMUERZO',     dot: [244, 132,  95] },
+  dinner:    { label: 'CENA',         dot: [ 94, 140, 180] },
+  snack:     { label: 'SNACK',        dot: [168, 140, 200] },
 }
 
 const GOAL_LABELS = {
@@ -87,7 +86,6 @@ function hline(doc, y, x1 = PAD, x2 = W - PAD, color = C.creamD) {
 
 function newPage(doc) {
   doc.addPage()
-  // Franja superior sutil
   box(doc, 0, 0, W, 8, C.terracotta)
   box(doc, 0, 7, W, 1, C.amber)
   return 16
@@ -100,6 +98,14 @@ function pageFooter(doc, page, total, name) {
     W/2, 291, { align: 'center' }
   )
   hline(doc, 288, 10, 200, C.creamD)
+}
+
+function calcWater(weight, activityLevel, goal) {
+  let base = weight * 0.033
+  if (activityLevel === 'active' || activityLevel === 'very_active') base += 0.5
+  if (goal === 'gain_muscle' || goal === 'lose_weight') base += 0.3
+  if (goal === 'helicobacter') base += 0.2
+  return Math.round(base * 10) / 10
 }
 
 // ── Proyecciones ───────────────────────────────────────────
@@ -138,10 +144,10 @@ function getProjections(goal, weight, calories) {
     gain_muscle: {
       title: 'Desarrollo muscular esperado',
       items: [
-        { label: 'Sintesis proteica diaria',    pct: 92, time: 'Desde dia 1' },
-        { label: 'Ganancia muscular (mes 1)',   pct: 70, time: '+0.5 - 1 kg' },
-        { label: 'Reduccion grasa corporal',    pct: 65, time: 'Mes 2-3' },
-        { label: 'Mejora rendimiento fisico',   pct: 85, time: '3-4 semanas' },
+        { label: 'Sintesis proteica diaria',  pct: 92, time: 'Desde dia 1' },
+        { label: 'Ganancia muscular (mes 1)', pct: 70, time: '+0.5 - 1 kg' },
+        { label: 'Reduccion grasa corporal',  pct: 65, time: 'Mes 2-3' },
+        { label: 'Mejora rendimiento fisico', pct: 85, time: '3-4 semanas' },
       ],
       summary: [
         `${Math.round(weight * 2)}g de proteina diaria (2g/kg) en 5 comidas`,
@@ -153,10 +159,10 @@ function getProjections(goal, weight, calories) {
     lose_weight: {
       title: 'Perdida de peso esperada',
       items: [
-        { label: 'Perdida de peso (mes 1)',   pct: 80, time: '-1.5 - 2 kg' },
-        { label: 'Perdida de peso (mes 2)',   pct: 88, time: '-3 - 4 kg' },
-        { label: 'Reduccion grasa corporal',  pct: 82, time: 'Progresiva' },
-        { label: 'Mejora de saciedad',        pct: 90, time: '1-2 semanas' },
+        { label: 'Perdida de peso (mes 1)',  pct: 80, time: '-1.5 - 2 kg' },
+        { label: 'Perdida de peso (mes 2)',  pct: 88, time: '-3 - 4 kg' },
+        { label: 'Reduccion grasa corporal', pct: 82, time: 'Progresiva' },
+        { label: 'Mejora de saciedad',       pct: 90, time: '1-2 semanas' },
       ],
       summary: [
         `Deficit de -450 kcal bajo tu TDEE (${calories} kcal/dia)`,
@@ -191,35 +197,24 @@ export function exportPlanToPDF(userParams, weekPlan) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   let y = 0
 
-function calcWater(weight, activityLevel, goal) {
-  let base = weight * 0.033
-  if (activityLevel === 'active' || activityLevel === 'very_active') base += 0.5
-  if (goal === 'gain_muscle' || goal === 'lose_weight') base += 0.3
-  if (goal === 'helicobacter') base += 0.2
-  return Math.round(base * 10) / 10
-}
   // ─────────────────────────────────────────
   // PÁG 1 — PORTADA
   // ─────────────────────────────────────────
-
-  // Fondo degradado simulado (tres rectángulos)
   box(doc, 0, 0, W, 297, C.cream)
   box(doc, 0, 0, W, 90, C.terracotta)
   box(doc, 0, 86, W, 8, C.amber)
 
-  // Logotipo / título
   f(doc, 32, 'bold', C.white)
   doc.text('NutriPlan', PAD, 36)
   f(doc, 11, 'normal', [255, 230, 215])
   doc.text(s('Tu plan alimenticio personalizado'), PAD, 48)
 
-  // Nombre del usuario en grande
   f(doc, 18, 'bold', C.white)
   doc.text(s(userParams.name), PAD, 66)
   f(doc, 10, 'normal', [255, 220, 200])
   doc.text(s(`${GOAL_LABELS[userParams.goal] || userParams.goal}  \xb7  ${userParams.calories} kcal/dia`), PAD, 76)
 
-  // ── Tarjetas de perfil (6 datos en 3 columnas) ──
+  // Tarjetas de perfil
   y = 102
   f(doc, 10, 'bold', C.brown)
   doc.text(s('Perfil del usuario'), PAD, y)
@@ -239,7 +234,6 @@ function calcWater(weight, activityLevel, goal) {
     const cy = y + Math.floor(i / 3) * 22
     box(doc, cx, cy, cw - 3, 20, C.white, 3)
     outline(doc, cx, cy, cw - 3, 20, C.creamD, 3)
-    // dot acento
     box(doc, cx + 4, cy + 6, 3, 3, C.terracotta, 1.5)
     f(doc, 7, 'bold', C.brownXL)
     doc.text(s(p.label.toUpperCase()), cx + 10, cy + 7.5)
@@ -248,7 +242,7 @@ function calcWater(weight, activityLevel, goal) {
   })
   y += 50
 
-  // ── Macros ──
+  // Macros
   hline(doc, y, PAD, W - PAD, C.creamD)
   y += 7
   f(doc, 10, 'bold', C.brown)
@@ -276,7 +270,7 @@ function calcWater(weight, activityLevel, goal) {
   })
   y += 58
 
-  // ── Resumen semanal (si existe) ──
+  // Resumen semanal
   if (weekPlan.weekSummary) {
     box(doc, PAD, y, INNER, 22, C.amberL, 4)
     f(doc, 8, 'bold', C.brown)
@@ -287,55 +281,29 @@ function calcWater(weight, activityLevel, goal) {
     y += 28
   }
 
-  // ── Tabla resumen de días (mini-tabla) ──
-  y = newPage(doc);
+  // ─────────────────────────────────────────
+  // PÁG 2 — TABLA RESUMEN + AGUA
+  // ─────────────────────────────────────────
+  y = newPage(doc)
   hline(doc, y, PAD, W - PAD, C.creamD)
   y += 7
   f(doc, 10, 'bold', C.brown)
-  doc.text(s('Resumen calórico semanal'), PAD, y)
+  doc.text(s('Resumen calorico semanal'), PAD, y)
   y += 7
 
   // Encabezado tabla
+  const colDay = 35, colKcal = 28, colP = 22, colC = 22, colG = 22, colJugo = 33
   box(doc, PAD, y, INNER, 8, C.brown, 2)
   f(doc, 7, 'bold', C.white)
-  const colDay = 35, colKcal = 28, colP = 22, colC = 22, colG = 22, colJugo = 33
-  doc.text('DIA', PAD + 3, y + 5.5)
-  doc.text('KCAL', PAD + colDay + 3, y + 5.5)
-  doc.text('PROTEINA', PAD + colDay + colKcal + 3, y + 5.5)
-  doc.text('CARBOS', PAD + colDay + colKcal + colP + 3, y + 5.5)
-  doc.text('GRASAS', PAD + colDay + colKcal + colP + colC + 3, y + 5.5)
-  doc.text('JUGO', PAD + colDay + colKcal + colP + colC + colG + 3, y + 5.5)
+  doc.text('DIA',      PAD + 3,                                        y + 5.5)
+  doc.text('KCAL',     PAD + colDay + 3,                               y + 5.5)
+  doc.text('PROTEINA', PAD + colDay + colKcal + 3,                     y + 5.5)
+  doc.text('CARBOS',   PAD + colDay + colKcal + colP + 3,              y + 5.5)
+  doc.text('GRASAS',   PAD + colDay + colKcal + colP + colC + 3,       y + 5.5)
+  doc.text('JUGO',     PAD + colDay + colKcal + colP + colC + colG + 3, y + 5.5)
   y += 8
 
-  // ── Agua + Restricciones ──
-  const water = calcWater(userParams.weight, userParams.activityLevel, userParams.goal)
-
-  // Agua
-  const infoY = y + 2
-  box(doc, PAD, infoY, (INNER / 2) - 3, 18, [235, 245, 255], 3)
-  outline(doc, PAD, infoY, (INNER / 2) - 3, 18, [190, 220, 255], 3)
-  f(doc, 7, 'bold', [80, 140, 200])
-  doc.text(s('AGUA DIARIA RECOMENDADA'), PAD + 4, infoY + 5.5)
-  f(doc, 14, 'bold', [60, 120, 200])
-  doc.text(`${water} L`, PAD + 4, infoY + 14)
-  f(doc, 7, 'normal', C.brownXL)
-  doc.text(s('/ dia  (8-10 vasos)'), PAD + 4 + doc.getTextWidth(`${water} L`) + 2, infoY + 14)
-
-  // Restricciones (si existen)
-  if (userParams.restrictions) {
-    const rx = PAD + INNER / 2 + 3
-    const rw = INNER / 2 - 3
-    box(doc, rx, infoY, rw, 18, [255, 248, 230], 3)
-    outline(doc, rx, infoY, rw, 18, [240, 210, 150], 3)
-    f(doc, 7, 'bold', [180, 120, 30])
-    doc.text(s('RESTRICCIONES / ALERGIAS'), rx + 4, infoY + 5.5)
-    f(doc, 8, 'normal', C.brown)
-    const rlines = doc.splitTextToSize(s(userParams.restrictions), rw - 8)
-    doc.text(rlines[0], rx + 4, infoY + 13.5)
-  }
-
-  y += 26
-
+  // Filas de los 7 días
   weekPlan.weekPlan.forEach((day, idx) => {
     const rowBg = idx % 2 === 0 ? C.cream : C.white
     box(doc, PAD, y, INNER, 7, rowBg)
@@ -359,12 +327,38 @@ function calcWater(weight, activityLevel, goal) {
     doc.text(juiceShort[0], PAD + colDay + colKcal + colP + colC + colG + 3, y + 5)
     y += 7
   })
-  y += 4
+  y += 6
+
+  // ── Agua + Restricciones — DESPUÉS del forEach ───────────
+  const water = calcWater(userParams.weight, userParams.activityLevel, userParams.goal)
+  const infoY = y   // ← se declara AQUÍ, después de la tabla
+
+  box(doc, PAD, infoY, (INNER / 2) - 3, 18, [235, 245, 255], 3)
+  outline(doc, PAD, infoY, (INNER / 2) - 3, 18, [190, 220, 255], 3)
+  f(doc, 7, 'bold', [80, 140, 200])
+  doc.text(s('AGUA DIARIA RECOMENDADA'), PAD + 4, infoY + 5.5)
+  f(doc, 14, 'bold', [60, 120, 200])
+  doc.text(`${water} L`, PAD + 4, infoY + 14)
+  f(doc, 7, 'normal', C.brownXL)
+  doc.text(s('      / dia  (8-10 vasos)'), PAD + 4 + doc.getTextWidth(`${water} L`) + 2, infoY + 14)
+
+  if (userParams.restrictions) {
+    const rx = PAD + INNER / 2 + 3
+    const rw = INNER / 2 - 3
+    box(doc, rx, infoY, rw, 18, [255, 248, 230], 3)
+    outline(doc, rx, infoY, rw, 18, [240, 210, 150], 3)
+    f(doc, 7, 'bold', [180, 120, 30])
+    doc.text(s('RESTRICCIONES / ALERGIAS'), rx + 4, infoY + 5.5)
+    f(doc, 8, 'normal', C.brown)
+    const rlines = doc.splitTextToSize(s(userParams.restrictions), rw - 8)
+    doc.text(rlines[0], rx + 4, infoY + 13.5)
+  }
+  y += 24
 
   // ─────────────────────────────────────────
-  // PÁG 2 — PROYECCIONES
+  // PROYECCIONES
   // ─────────────────────────────────────────
-
+  y += 8
   const proj = getProjections(userParams.goal, userParams.weight, userParams.calories)
 
   f(doc, 14, 'bold', C.terracotta)
@@ -374,10 +368,10 @@ function calcWater(weight, activityLevel, goal) {
   y += 8
 
   proj.items.forEach(item => {
+    if (y + 20 > 276) { y = newPage(doc) }
     const bx = PAD, bw = INNER
     box(doc, bx, y, bw, 18, C.cream, 3)
     outline(doc, bx, y, bw, 18, C.creamD, 3)
-    // Dot color
     box(doc, bx + 4, y + 7, 4, 4, C.sage, 2)
     f(doc, 9, 'bold', C.brown)
     doc.text(s(item.label), bx + 12, y + 10)
@@ -393,13 +387,13 @@ function calcWater(weight, activityLevel, goal) {
   hline(doc, y, PAD, W - PAD, C.creamD)
   y += 10
 
-  // Claves del plan
+  y = newPage(doc)
   f(doc, 11, 'bold', C.brown)
   doc.text(s('Claves de tu plan'), PAD, y)
   y += 10
 
   proj.summary.forEach((line, i) => {
-    // Dot numerado
+    if (y + 10 > 276) { y = newPage(doc) }
     box(doc, PAD, y - 3, 6, 6, C.terracotta, 3)
     f(doc, 7, 'bold', C.white)
     doc.text(`${i+1}`, PAD + 1.8, y + 1.2)
@@ -409,8 +403,7 @@ function calcWater(weight, activityLevel, goal) {
     y += lines.length * 6 + 4
   })
 
-  // Consejos generales en la misma página si caben
-  y = newPage(doc)
+  // Consejos generales
   if (weekPlan.generalTips?.length) {
     y += 6
     hline(doc, y, PAD, W - PAD, C.sageL)
@@ -432,83 +425,67 @@ function calcWater(weight, activityLevel, goal) {
   }
 
   // ─────────────────────────────────────────
-  // PÁGS 3+ — PLAN SEMANAL (1 día por bloque)
+  // PÁGS SIGUIENTES — PLAN SEMANAL
   // ─────────────────────────────────────────
-
-  // Función para renderizar un día completo
-  // Retorna la altura total consumida
   function renderDay(doc, day, startY) {
     let dy = startY
 
-    // Encabezado del día — banda completa
     box(doc, PAD, dy, INNER, 12, C.amber, 3)
     f(doc, 11, 'bold', C.brown)
     doc.text(s(day.day.toUpperCase()), PAD + 5, dy + 8.5)
     f(doc, 9, 'bold', C.brownL)
-    doc.text(s(`${day.totalCalories} kcal  \xb7  ${calcWater(userParams.weight, userParams.activityLevel, userParams.goal)}L agua`), PAD + INNER - 5, dy + 8.5, { align: 'right' })
+    doc.text(
+      s(`${day.totalCalories} kcal  \xb7  ${calcWater(userParams.weight, userParams.activityLevel, userParams.goal)}L agua`),
+      PAD + INNER - 5, dy + 8.5, { align: 'right' }
+    )
     dy += 16
-    
 
-    // Comidas del día — una por fila, ancho completo
     const meals = MEAL_ORDER.filter(k => day.meals[k]).map(k => [k, day.meals[k]])
-
     meals.forEach(([key, meal]) => {
       const cfg = MEAL_CONFIG[key] || { label: key.toUpperCase(), dot: C.brownL }
       const mealH = 22
 
       box(doc, PAD, dy, INNER, mealH, C.white, 3)
       outline(doc, PAD, dy, INNER, mealH, C.creamD, 3)
-
-      // Franja izquierda de color por tipo
       box(doc, PAD, dy, 4, mealH, cfg.dot, 3)
 
-      // Etiqueta tipo
       f(doc, 6.5, 'bold', cfg.dot)
       doc.text(cfg.label, PAD + 8, dy + 6.5)
 
-      // Nombre del plato
       f(doc, 9, 'bold', C.brown)
       const nameFit = doc.splitTextToSize(s(meal.name), 95)
       doc.text(nameFit[0], PAD + 8, dy + 13)
 
-      // Descripción corta
       f(doc, 7, 'normal', C.brownXL)
       const descFit = doc.splitTextToSize(s(meal.description || ''), 95)
       doc.text(descFit[0], PAD + 8, dy + 19)
 
-      // Calorías destacadas
       f(doc, 13, 'bold', C.terracotta)
       doc.text(`${meal.calories}`, PAD + INNER - 5, dy + 12, { align: 'right' })
       f(doc, 7, 'normal', C.brownXL)
       doc.text('kcal', PAD + INNER - 5, dy + 18, { align: 'right' })
 
-      // Macros (columna derecha intermedia)
       const mx = PAD + 108
       f(doc, 7, 'normal', C.brownL)
       doc.text(`P: ${meal.protein}g`, mx, dy + 8)
       doc.text(`C: ${meal.carbs}g`,   mx, dy + 14)
       doc.text(`G: ${meal.fat}g`,     mx, dy + 20)
 
-      // Prep time
       f(doc, 7, 'normal', C.brownXL)
-      doc.text(s(`  ${meal.prepTime || '15 min'}`), mx + 20, dy + 8)
+      doc.text(s(`${meal.prepTime || '15 min'}`), mx + 20, dy + 8)
 
       dy += mealH + 3
     })
 
-    return dy - startY  // altura total usada
+    return dy - startY
   }
 
-  // Calcular altura aproximada de un día
   function dayHeight(day) {
     const mealCount = MEAL_ORDER.filter(k => day.meals[k]).length
-    return 12 + 16 + mealCount * 25 + 8  // header + gap + comidas + margen
+    return 12 + 16 + mealCount * 25 + 8
   }
 
-  // Renderizar los 7 días, 2-3 por página según espacio
   y = newPage(doc)
-
-  // Mini-header de sección
   f(doc, 13, 'bold', C.terracotta)
   doc.text(s('Plan semanal completo'), PAD, y + 6)
   f(doc, 8, 'normal', C.brownL)
@@ -526,7 +503,7 @@ function calcWater(weight, activityLevel, goal) {
     y += h + 4
   })
 
-  // ── Footers en todas las páginas ──────────────────────────
+  // Footers en todas las páginas
   const totalPages = doc.internal.getNumberOfPages()
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i)

@@ -177,7 +177,7 @@ export default function Landing() {
       </section>
 
       <footer className="py-8 text-center text-sm font-body" style={{ color: 'var(--text3)', borderTop: '1px solid var(--border)' }}>
-        <p>NutriPlan · Powered by Gemini AI & TheMealDB · {new Date().getFullYear()}</p>
+        <p>NutriPlan · Powered by Gemini AI & Nicode· {new Date().getFullYear()}</p>
       </footer>
     </div>
   )

@@ -191,6 +191,13 @@ export function exportPlanToPDF(userParams, weekPlan) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   let y = 0
 
+function calcWater(weight, activityLevel, goal) {
+  let base = weight * 0.033
+  if (activityLevel === 'active' || activityLevel === 'very_active') base += 0.5
+  if (goal === 'gain_muscle' || goal === 'lose_weight') base += 0.3
+  if (goal === 'helicobacter') base += 0.2
+  return Math.round(base * 10) / 10
+}
   // ─────────────────────────────────────────
   // PÁG 1 — PORTADA
   // ─────────────────────────────────────────
@@ -299,6 +306,35 @@ export function exportPlanToPDF(userParams, weekPlan) {
   doc.text('GRASAS', PAD + colDay + colKcal + colP + colC + 3, y + 5.5)
   doc.text('JUGO', PAD + colDay + colKcal + colP + colC + colG + 3, y + 5.5)
   y += 8
+
+  // ── Agua + Restricciones ──
+  const water = calcWater(userParams.weight, userParams.activityLevel, userParams.goal)
+
+  // Agua
+  const infoY = y + 2
+  box(doc, PAD, infoY, (INNER / 2) - 3, 18, [235, 245, 255], 3)
+  outline(doc, PAD, infoY, (INNER / 2) - 3, 18, [190, 220, 255], 3)
+  f(doc, 7, 'bold', [80, 140, 200])
+  doc.text(s('AGUA DIARIA RECOMENDADA'), PAD + 4, infoY + 5.5)
+  f(doc, 14, 'bold', [60, 120, 200])
+  doc.text(`${water} L`, PAD + 4, infoY + 14)
+  f(doc, 7, 'normal', C.brownXL)
+  doc.text(s('/ dia  (8-10 vasos)'), PAD + 4 + doc.getTextWidth(`${water} L`) + 2, infoY + 14)
+
+  // Restricciones (si existen)
+  if (userParams.restrictions) {
+    const rx = PAD + INNER / 2 + 3
+    const rw = INNER / 2 - 3
+    box(doc, rx, infoY, rw, 18, [255, 248, 230], 3)
+    outline(doc, rx, infoY, rw, 18, [240, 210, 150], 3)
+    f(doc, 7, 'bold', [180, 120, 30])
+    doc.text(s('RESTRICCIONES / ALERGIAS'), rx + 4, infoY + 5.5)
+    f(doc, 8, 'normal', C.brown)
+    const rlines = doc.splitTextToSize(s(userParams.restrictions), rw - 8)
+    doc.text(rlines[0], rx + 4, infoY + 13.5)
+  }
+
+  y += 26
 
   weekPlan.weekPlan.forEach((day, idx) => {
     const rowBg = idx % 2 === 0 ? C.cream : C.white
@@ -409,8 +445,9 @@ export function exportPlanToPDF(userParams, weekPlan) {
     f(doc, 11, 'bold', C.brown)
     doc.text(s(day.day.toUpperCase()), PAD + 5, dy + 8.5)
     f(doc, 9, 'bold', C.brownL)
-    doc.text(s(`${day.totalCalories} kcal totales`), PAD + INNER - 5, dy + 8.5, { align: 'right' })
+    doc.text(s(`${day.totalCalories} kcal  \xb7  ${calcWater(userParams.weight, userParams.activityLevel, userParams.goal)}L agua`), PAD + INNER - 5, dy + 8.5, { align: 'right' })
     dy += 16
+    
 
     // Comidas del día — una por fila, ancho completo
     const meals = MEAL_ORDER.filter(k => day.meals[k]).map(k => [k, day.meals[k]])

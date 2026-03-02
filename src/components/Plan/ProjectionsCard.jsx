@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { calculateWater } from '../../utils/nutrition'
 
 export function getProjections(goal, weight, calories) {
   const p = {
@@ -53,6 +54,7 @@ export function getProjections(goal, weight, calories) {
 
 export default function ProjectionsCard({ goal, weight, calories, delay = 0 }) {
   const proj = getProjections(goal, weight, calories)
+  const water = calculateWater(weight, activityLevel, goal)
 
   return (
     <motion.div
@@ -90,6 +92,32 @@ export default function ProjectionsCard({ goal, weight, calories, delay = 0 }) {
             </div>
           </div>
         ))}
+      </div>
+      {/* Agua recomendada */}
+      <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">💧</span>
+            <div>
+              <div className="text-xs font-body font-bold uppercase tracking-wide" style={{ color: 'var(--text2)' }}>
+                Agua diaria recomendada
+              </div>
+              <div className="text-xs font-body mt-0.5" style={{ color: 'var(--text3)' }}>
+                Distribuida en 8-10 vasos
+              </div>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className="font-display text-2xl font-bold text-terracotta-500">{water}</span>
+            <span className="text-sm font-body ml-1" style={{ color: 'var(--text2)' }}>L</span>
+          </div>
+        </div>
+        <div className="flex gap-1 mt-2">
+          {Array.from({ length: 10 }, (_, i) => (
+            <div key={i} className="flex-1 h-2 rounded-full transition-all"
+              style={{ backgroundColor: i < Math.round(water * 10 / 3) ? '#60a5fa' : 'var(--surface2)' }} />
+          ))}
+        </div>
       </div>
 
       <p className="text-xs font-body text-center mt-4 pt-3" style={{ color: 'var(--text3)', borderTop: '1px solid var(--border)' }}>

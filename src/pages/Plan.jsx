@@ -119,13 +119,26 @@ export default function Plan() {
               <div className="mt-3 text-xs font-body text-center" style={{ color: 'var(--text3)' }}>Promedio diario estimado</div>
             </motion.div>
 
-            <ProjectionsCard goal={userParams.goal} weight={userParams.weight} calories={userParams.calories} delay={0.4} />
+            <ProjectionsCard goal={userParams.goal} weight={userParams.weight} calories={userParams.calories} activityLevel={userParams.activityLevel} delay={0.4} />
 
             {weekPlan.weekSummary && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="card">
                 <div className="text-2xl mb-2">✨</div>
                 <h3 className="font-display font-bold mb-2" style={{ color: 'var(--text)' }}>Tu plan en pocas palabras</h3>
                 <p className="text-sm font-body leading-relaxed" style={{ color: 'var(--text2)' }}>{weekPlan.weekSummary}</p>
+              </motion.div>
+            )}
+
+            {userParams.restrictions && (
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.55 }} className="card">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xl">⚠️</span>
+                  <h3 className="font-display font-bold" style={{ color: 'var(--text)' }}>Restricciones del plan</h3>
+                </div>
+                <p className="text-sm font-body leading-relaxed px-3 py-2 rounded-xl"
+                  style={{ color: 'var(--text2)', backgroundColor: 'color-mix(in srgb, #f7b267 12%, var(--surface2))', border: '1px solid color-mix(in srgb, #f7b267 25%, var(--border))' }}>
+                  {userParams.restrictions}
+                </p>
               </motion.div>
             )}
 

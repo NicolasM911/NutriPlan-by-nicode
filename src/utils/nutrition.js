@@ -32,6 +32,15 @@ export function adjustCaloriesForGoal(tdee, goal) {
   return tdee + (adjustments[goal] || 0)
 }
 
+// Calcula litros de agua diarios recomendados
+export function calculateWater(weight, activityLevel, goal) {
+  let base = weight * 0.033  // 33ml por kg
+  if (activityLevel === 'active' || activityLevel === 'very_active') base += 0.5
+  if (goal === 'gain_muscle' || goal === 'lose_weight') base += 0.3
+  if (goal === 'helicobacter') base += 0.2
+  return Math.round(base * 10) / 10  // redondea a 1 decimal
+}
+
 export const GOALS = [
   {
     id: 'helicobacter',
